@@ -41,6 +41,9 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         self.clearInputFolderButton.clicked.connect(self.clearInputBrowsing)
         self.clearOutputFolderButton.clicked.connect(self.clearOutputBrowsing)
 
+        self.convertXmlReady = False
+        self.calculateParamapButton.setHidden(True)
+
 
     # FIRST STEP: get the input text of the nifti input line edit
 #-------------------------------------------------------------------------------------------------------------
@@ -76,20 +79,29 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
             self.feedbackText.setText("Valid Folder Chosen")
             if self.outputNiftiFileLocation:
                 self.convertXmlButton.clicked.connect(self.convertXmltoNifti)
+                self.convertXmlReady = True
 
     def clearInputBrowsing(self):
         self.xmlLineEdit.setText("")
         self.inputXmlFileLocation = ""
-        self.convertXmlButton.clicked.disconnect()
+        if self.convertXmlReady:
+            self.convertXmlButton.clicked.disconnect()
+            self.convertXmlReady = False
     
     def clearOutputBrowsing(self):
         self.niftiDestinationLineEdit.setText("")
         self.outputNiftiFileLocation = ""
-        self.convertXmlButton.clicked.disconnect()
+        if self.convertXmlReady:
+            self.convertXmlButton.clicked.disconnect()
+            self.convertXmlReady = False
+
 
     def clearInputFilePath(self):
         self.niftiLineEdit.clear()
-        self.openIMGButton.clicked.disconnect()
+        if self.convertXmlReady:
+            self.openIMGButton.clicked.disconnect()
+            self.convertXmlReady = False
+
 
 
 # SECOND STEP: does a double check for valid file type and then displays the initial slices into QLabels
@@ -108,22 +120,17 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         self.dataNibImg = self.nibImg.get_fdata()
         self.dataNibImg = self.dataNibImg.astype(np.uint8)
         self.windowsComputed = False
-        self.is3d = False
 
         self.OGData4dImg = self.dataNibImg.copy()
 
         self.data4dImg = self.dataNibImg
-        if self.is3d:
-            self.x, self.y, self.z = self.data4dImg.shape
-        else:
-            self.x, self.y, self.z, self.numSlices = self.data4dImg.shape
+        self.x, self.y, self.z, self.numSlices = self.data4dImg.shape
         self.maskCoverImg = np.zeros([self.x, self.y, self.z,4])
-        if not self.is3d:
-            self.slicesChanger.setMaximum(self.numSlices-1)
-            self.curSlices.setText(str(self.curSlice+1))
-            self.totalSlices.setText(str(self.numSlices))
-            self.slicesChanger.valueChanged.connect(self.sliceValueChanged)
-            self.slicesChanger.setDisabled(False)
+        self.slicesChanger.setMaximum(self.numSlices-1)
+        self.curSlices.setText(str(self.curSlice+1))
+        self.totalSlices.setText(str(self.numSlices))
+        self.slicesChanger.valueChanged.connect(self.sliceValueChanged)
+        self.slicesChanger.setDisabled(False)
 
         self.x -= 1
         self.y -= 1
@@ -189,29 +196,20 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         self.drawPolygonButton.setCheckable(True)
 
         #getting initial image data for axial, sag, coronal slices
-        if not self.is3d:
-            self.data2dAx = self.data4dImg[:,:,0, self.curSlice] #2D data for axial
-            self.data2dAx = np.flipud(self.data2dAx) #flipud
-            self.data2dAx = np.rot90(self.data2dAx,3) #rotate ccw 270
-        else:
-            self.data2dAx = self.data4dImg[:,:,0]
+        self.data2dAx = self.data4dImg[:,:,0, self.curSlice] #2D data for axial
+        self.data2dAx = np.flipud(self.data2dAx) #flipud
+        self.data2dAx = np.rot90(self.data2dAx,3) #rotate ccw 270
         self.data2dAx = np.require(self.data2dAx,np.uint8, 'C')
 
-        if self.is3d:
-            self.data2dSag = self.data4dImg[0,:,:]
-        else:
-            self.data2dSag = self.data4dImg[0,:,:, self.curSlice] #2D data for sagittal
-            self.data2dSag = np.flipud(self.data2dSag) #flipud
-            self.data2dSag = np.rot90(self.data2dSag,2) #rotate ccw 180
-            self.data2dSag = np.fliplr(self.data2dSag)
+        self.data2dSag = self.data4dImg[0,:,:, self.curSlice] #2D data for sagittal
+        self.data2dSag = np.flipud(self.data2dSag) #flipud
+        self.data2dSag = np.rot90(self.data2dSag,2) #rotate ccw 180
+        self.data2dSag = np.fliplr(self.data2dSag)
         self.data2dSag = np.require(self.data2dSag,np.uint8,'C')
 
-        if self.is3d:
-            self.data2dCor = self.data4dImg[:,0,:]
-        else:
-            self.data2dCor = self.data4dImg[:,0,:, self.curSlice] #2D data for coronal
-            self.data2dCor = np.rot90(self.data2dCor,1) #rotate ccw 90
-            self.data2dCor = np.flipud(self.data2dCor) #flipud
+        self.data2dCor = self.data4dImg[:,0,:, self.curSlice] #2D data for coronal
+        self.data2dCor = np.rot90(self.data2dCor,1) #rotate ccw 90
+        self.data2dCor = np.flipud(self.data2dCor) #flipud
         self.data2dCor = np.require(self.data2dCor,np.uint8,'C')
 
         self.heightAx, self.widthAx = self.data2dAx.shape #getting height and width for each plane
@@ -234,7 +232,6 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         self.sagPlane.setPixmap(self.pixmapSag)
         self.corPlane.setPixmap(self.pixmapCor)
 
-        self.imagesOpened = True
         self.scrolling = True
         self.axCoverLabel.setCursor(Qt.BlankCursor)
         self.sagCoverLabel.setCursor(Qt.BlankCursor)
@@ -255,7 +252,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         self.acceptPolygonButton.clicked.connect(self.acceptPolygon) #called to exit the paint function
         self.undoLastPtButton.clicked.connect(self.undoLastPoint) #deletes last drawn rectangle if on sag or cor slices
 
-        self.undoLastROIButton.clicked.connect(self.undoLastRectangle)
+        self.undoLastROIButton.clicked.connect(self.undoLastROI)
         self.drawPolygonButton.clicked.connect(self.startROIDraw)
 
         self.interpolateVOIButton.clicked.connect(lambda:  self.feedbackText.setText("Must have have at least 1 ROI per plane to generate VOI"))
@@ -268,7 +265,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
     #of ROIs and masks of that particular image
 
     def sliceValueChanged(self):
-        self.curSlice = self.sliceArray[self.slicesChanger.value()]
+        self.curSlice = int(self.sliceArray[self.slicesChanger.value()])
         self.curSlices.setText(str(self.curSlice+1))
         self.changeAxialSlices()
         self.changeSagSlices()
@@ -298,12 +295,9 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
 
         self.currentFrameAx.setText(str(self.newZVal+1))
 
-        if not self.is3d:
-            self.data2dAx = self.data4dImg[:,:,self.newZVal, self.curSlice]#, self.curSlice] #defining 2D data for axial
-            self.data2dAx = np.flipud(self.data2dAx) #flipud
-            self.data2dAx = np.rot90(self.data2dAx,3) #rotate
-        else:
-            self.data2dAx = self.data4dImg[:,:,self.newZVal]
+        self.data2dAx = self.data4dImg[:,:,self.newZVal, self.curSlice]#, self.curSlice] #defining 2D data for axial
+        self.data2dAx = np.flipud(self.data2dAx) #flipud
+        self.data2dAx = np.rot90(self.data2dAx,3) #rotate
         self.data2dAx = np.require(self.data2dAx,np.uint8,'C')
 
         self.bytesLineAx, _ = self.data2dAx.strides
@@ -336,13 +330,10 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
 
         self.currentFrameSag.setText(str(self.newXVal+1))
 
-        if not self.is3d:
-            self.data2dSag = self.data4dImg[self.newXVal,:,:, self.curSlice]#, self.curSlice]
-            self.data2dSag = np.flipud(self.data2dSag) #flipud
-            self.data2dSag = np.rot90(self.data2dSag,2) #rotate
-            self.data2dSag = np.fliplr(self.data2dSag)
-        else:
-            self.data2dSag = self.data4dImg[self.newXVal,:,:]
+        self.data2dSag = self.data4dImg[self.newXVal,:,:, self.curSlice]#, self.curSlice]
+        self.data2dSag = np.flipud(self.data2dSag) #flipud
+        self.data2dSag = np.rot90(self.data2dSag,2) #rotate
+        self.data2dSag = np.fliplr(self.data2dSag)
         self.data2dSag = np.require(self.data2dSag,np.uint8,'C')
 
         self.bytesLineSag, _ = self.data2dSag.strides
@@ -376,12 +367,9 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
 
         self.currentFrameCor.setText(str(self.newYVal+1))
 
-        if not self.is3d:
-            self.data2dCor = self.data4dImg[:,self.newYVal,:, self.curSlice]#, self.curSlice]
-            self.data2dCor = np.rot90(self.data2dCor,1) #rotate
-            self.data2dCor = np.flipud(self.data2dCor) #flipud
-        else:
-            self.data2dCor = self.data4dImg[:,self.newYVal,:]
+        self.data2dCor = self.data4dImg[:,self.newYVal,:, self.curSlice]#, self.curSlice]
+        self.data2dCor = np.rot90(self.data2dCor,1) #rotate
+        self.data2dCor = np.flipud(self.data2dCor) #flipud
         self.data2dCor = np.require(self.data2dCor, np.uint8,'C')
 
         self.bytesLineCor, _ = self.data2dCor.strides
@@ -409,7 +397,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
     def enlargeAxImg(self):
         if self.id != 0:
             self.closeExpandedImg()
-        if self.id != 1 and self.imagesOpened:
+        if self.id != 1:
             self.id = 1 #to help painter identify which plane was enlarged
             self.axialPlane.setHidden(False)
             self.ofTextAx.setHidden(False)
@@ -492,7 +480,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
     def enlargeSagImg(self):
         if self.id != 0:
             self.closeExpandedImg()
-        if self.id != 2 and self.imagesOpened:
+        if self.id != 2:
             self.sagCoverLabel.move(470, 30)
             self.sagCoverLabel.resize(680, 638)
             self.sagCoverPixmap = QPixmap(680, 638)
@@ -571,7 +559,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
     def enlargeCorImg(self):
         if self.id != 0:
             self.closeExpandedImg()
-        if self.id != 3 and self.imagesOpened:
+        if self.id != 3:
             self.corCoverLabel.move(470, 30)
             self.corCoverLabel.resize(680, 638)
             self.corCoverPixmap = QPixmap(680, 638)
@@ -650,7 +638,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
 #------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------
     def closeExpandedImg(self):
-        if self.id != 0 and self.imagesOpened:
+        if self.id != 0:
             if self.id == 1:
                 self.axCoverLabel.move(470, 30)
                 self.axCoverLabel.resize(331, 311)
@@ -818,7 +806,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------
     def paintEvent(self,event):
         scrolling = "none"
-        if self.id ==0 and self.imagesOpened and self.scrolling:
+        if self.id ==0 and self.scrolling:
             if self.xCur < 811 and self.xCur > 478 and self.yCur < 342 and self.yCur > 29 and (self.painted == "none" or self.painted == "ax"):
                 self.actualX = int((self.xCur - 479)*(self.widthAx-1)/331)
                 self.actualY = int((self.yCur - 30)*(self.heightAx-1)/311)
@@ -853,7 +841,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
                 painter.drawLines([corVertLine, corLatLine])
                 painter.end()
 
-        elif self.id != 0 and self.imagesOpened and self.scrolling:
+        elif self.id != 0 and self.scrolling:
             if self.xCur < 1151 and self.xCur > 469 and self.yCur < 669 and self.yCur > 29:
                 if self.id == 1:
                     self.actualX = int((self.widthAx-1)*(self.xCur-470)/680)
@@ -1093,10 +1081,10 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
 #-------------------------------------------------------------------------
     def acceptPolygon(self):
         # 2d interpolation
-        if len(self.curPointsPlottedX) and self.imagesOpened and self.voiComputed == False:
+        if len(self.curPointsPlottedX) and self.voiComputed == False:
             self.drawPolygonButton.setChecked(False)
             self.feedbackScrollBar.setHidden(True)
-            self.feedbackText.setText("rectangular shape accepted")
+            self.feedbackText.setText("VOI Created Successfully")
             self.curPointsPlottedX.append(self.curPointsPlottedX[0])
             self.curPointsPlottedY.append(self.curPointsPlottedY[0])
             self.maskCoverImg.fill(0)
@@ -1151,6 +1139,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
                     self.maskCoverImg[self.newXVal, int(self.curPointsPlottedY[i]), int(self.curPointsPlottedX[i])] = [0,0,255,int(self.curAlpha.value())]
                 elif self.painted == "cor":
                     self.maskCoverImg[int(self.curPointsPlottedX[i]), self.newYVal, int(self.curPointsPlottedY[i])] = [0,0,255,int(self.curAlpha.value())]
+
             self.changeAxialSlices()
             self.changeSagSlices()
             self.changeCorSlices()
@@ -1159,18 +1148,18 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
 
 
     def startROIDraw(self):
-        if self.acceptPolygonButton.isHidden() and self.drawPolygonButton.isCheckable():
+        if self.drawPolygonButton.isChecked():
             self.acceptPolygonButton.setHidden(False)
             self.undoLastROIButton.setHidden(True)
-        elif len(self.curPointsPlottedX) == 0 and len(self.pointsPlotted) != 0:
+        else:
             self.acceptPolygonButton.setHidden(True)
             self.undoLastROIButton.setHidden(False)
 
-    def undoLastRectangle(self):
-        if self.imagesOpened and self.voiComputed == False:
+    def undoLastROI(self):
+        if not self.voiComputed and len(self.planesDrawn):
 
             if len(self.pointsPlotted) == 0:
-                self.feedbackText.setText("Unable to remove rectangle")
+                self.feedbackText.setText("Unable to remove ROI")
             else:
                 self.pointsPlotted.pop()
                 self.planesDrawn.pop()
@@ -1181,10 +1170,15 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
                 self.changeAxialSlices()
                 self.changeSagSlices()
                 self.changeCorSlices()
+            self.interpolateVOIButton.clicked.disconnect()
+            self.interpolateVOIButton.clicked.connect(lambda:  self.feedbackText.setText("Must have at least 1 ROI per plane to generate VOI"))
             self.update()
+        
+        elif not len(self.planesDrawn):
+            self.feedbackText.setText("No ROIs to remove")
 
     def voi3dInterpolation(self):
-        if self.imagesOpened and self.voiComputed == False:
+        if self.voiComputed == False:
             points = calculateSpline3D(list(chain.from_iterable(self.pointsPlotted)))
 
             self.pointsPlotted = []
@@ -1196,6 +1190,8 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
                     self.pointsPlotted.append(tuple(point))
             if len(self.pointsPlotted) == 0:
                 self.feedbackText.setText("VOI not in US image.\nDraw new VOI over US image")
+                self.interpolateVOIButton.clicked.disconnect()
+                self.interpolateVOIButton.clicked.connect(lambda:  self.feedbackText.setText("Must have at least 1 ROI per plane to generate VOI"))
                 self.maskCoverImg.fill(0)
                 self.changeAxialSlices()
                 self.changeSagSlices()
@@ -1350,16 +1346,11 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         #     self.sliceValueChanged()
 
     def showTic(self):
-        if not self.windowsComputed and self.imagesOpened and self.voiComputed:
+        if not self.windowsComputed and self.voiComputed:
             self.header = self.nibImg.header['pixdim'] # [dims, voxel dims (3 vals), timeconst, 0, 0, 0]
             times = [i*self.header[4] for i in range(1, self.OGData4dImg.shape[3]+1)]
             self.voxelScale = self.header[1]*self.header[2]*self.header[3] # mm^3
-            print("self.header[1]:",self.header[1])
-            print("self.header[2]:",self.header[2])
-            print("self.header[3]:",self.header[3])
             self.voxelScale /= len(self.pointsPlotted)
-            print("len pointsPlotted:", len(self.pointsPlotted))
-            print("voxelscale",self.voxelScale)
             simplifiedMask = self.maskCoverImg[:,:,:,2]
             TIC = ut.generate_TIC(self.OGData4dImg, simplifiedMask, times, self.compressValue.value(),  self.voxelScale)
 
@@ -1377,6 +1368,9 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
             self.ticX = np.array([[TIC[i,0],i] for i in range(len(TIC[:,0]))])
             self.ticY = TIC[:,1]
             self.ticEditor.graph(self.ticX, self.ticY)
+            self.ticEditor.initT0()
+            self.ticEditor.t0Scroll.setValue(int(min(self.ticEditor.ticX[:, 0])))
+            self.ticEditor.t0ScrollValueChanged()
 
     def showAuc(self):
         if self.aucParamapButton.isChecked():

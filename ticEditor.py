@@ -105,36 +105,18 @@ class TICEditorGUI(QMainWindow):
         self.accept.setFocusPolicy(Qt.NoFocus)
         self.accept.setHidden(True)
 
-        # self.accept.clicked.connect(self.acceptTIC)
-        
-        self.manualT0Button = QPushButton(self)
-        self.manualT0Button.setGeometry(QRect(300, 655, 280, 60))
-        self.manualT0Button.setText("Manually Select t0")
-        self.manualT0Button.setFocusPolicy(Qt.NoFocus)
-        self.manualT0Button.setFont(font)
-        self.manualT0Button.clicked.connect(self.manualChecked)
-        self.autoT0Button = QPushButton(self)
-        self.autoT0Button.setGeometry(QRect(620, 655, 280, 60))
-        self.autoT0Button.setText("Automatically Select t0")
-        self.autoT0Button.setFocusPolicy(Qt.NoFocus)
-        self.autoT0Button.setFont(font)
-        self.autoT0Button.clicked.connect(self.autoChecked)
-
         self.acceptT0Button = QPushButton(self)
         self.acceptT0Button.setGeometry(QRect(660, 660, 250, 50))
         self.acceptT0Button.setFont(font)
         self.acceptT0Button.setText("Accept Start Time")
         self.acceptT0Button.setFocusPolicy(Qt.NoFocus)
         self.acceptT0Button.clicked.connect(self.acceptT0)
-        self.acceptT0Button.setHidden(True)
 
         self.t0Scroll = QSlider(self)
         self.t0Scroll.setGeometry(QRect(400, 660, 200, 50))
         self.t0Scroll.setOrientation(Qt.Horizontal)
         self.t0Scroll.setObjectName("t0scroll")
-        self.t0Scroll.setHidden(True)
 
-        self.prevLine = 0
         self.t0index = -1
         self.frontPointsX = []
         self.frontPointsY = []
@@ -146,36 +128,8 @@ class TICEditorGUI(QMainWindow):
         self.retranslateUi(self)
         QMetaObject.connectSlotsByName(self)
 
-    def autoFindT0(self):
-        if len(self.ticX) != len(self.ticY):
-            print("TIC arrays must have same length!")
-            return
-        global t0Point
-        i = 0
-        while i < len(self.ticX)-1:
-            if self.ticY[i+1]/self.ticY[i] > 1.1:
-                t0Point = [self.ticX[i], self.ticY[i], i]
-                self.acceptT0()
-
-    def hidePickingButtons(self):
-        self.manualT0Button.setHidden(True)
-        self.autoT0Button.setHidden(True)
-        self.chooseMethodLabel.setHidden(True)
-
-    def manualChecked(self):
-        self.hidePickingButtons()
-        self.acceptT0Button.setHidden(False)
-        self.t0Scroll.setMinimum(int(min(self.ticX[:,0])))
-        self.t0Scroll.setMaximum(int(max(self.ticX[:,0])))
-        self.t0Scroll.valueChanged.connect(self.t0ScrollValueChanged)
-        self.t0Scroll.setValue(int(min(self.ticX[:,0])))
-        self.t0ScrollValueChanged()
-        self.t0Scroll.setHidden(False)
-        self.selectT0Label.setHidden(False)
-
     def t0ScrollValueChanged(self):
-        if self.prevLine != 0:
-            self.prevLine.remove()
+        self.prevLine.remove()
         self.prevLine = self.ax.axvline(x = self.t0Scroll.value(), color = 'green', label = 'axvline - full height')
         self.canvas.draw()
 
@@ -185,18 +139,14 @@ class TICEditorGUI(QMainWindow):
         self.remove.setHidden(False)
         self.deselect.setHidden(False)
         self.removePointsLabel.setHidden(False)
-    
-    def autoChecked(self):
-        self.hidePickingButtons()
-        self.displayTicEditButtons()
-
 
     def acceptT0(self):
         global pickT0, selectedPoints, removedPointsX, removedPointsY
-        for i in range(len(self.ticX[:,0])):
-            if self.ticX[:,0][i] > self.t0Scroll.value():
-                break
-        self.t0index = i
+        if self.t0index == -1:
+            for i in range(len(self.ticX[:,0])):
+                if self.ticX[:,0][i] > self.t0Scroll.value():
+                    break
+            self.t0index = i
         self.displayTicEditButtons()
         self.acceptT0Button.setHidden(True)
         self.t0Scroll.setHidden(True)
@@ -211,7 +161,6 @@ class TICEditorGUI(QMainWindow):
         self.ticX[:,0] -= (min(self.ticX[:,0]) - 1)
         self.fig.clear()
         self.graph(self.ticX, self.ticY)
-        # highlight = PointSelector(self.ax, self.ticX[:,0], self.ticY)
 
     def rect_highlight(self, event1, event2):
         global selectedPoints
@@ -222,13 +171,11 @@ class TICEditorGUI(QMainWindow):
         for index in addedIndices:
             selectedPoints.append(index) 
         self.ax.scatter(x, y, color='orange')
-        # self.ax.set_xlim(left=min(self.ticX[:,0] - 10))
         self.canvas.draw()
 
     def inside(self, event1, event2):
-        """Returns a boolean mask of the points inside the rectangle defined by
-        event1 and event2."""
-        # Note: Could use points_inside_poly, as well
+        # Returns a boolean mask of the points inside the rectangle defined by
+        # event1 and event2
         x0, x1 = sorted([event1.xdata, event2.xdata])
         y0, y1 = sorted([event1.ydata, event2.ydata])
         mask = ((self.ticX[:,0] > x0) & (self.ticX[:,0] < x1) &
@@ -265,7 +212,28 @@ class TICEditorGUI(QMainWindow):
         if self.t0index > -1:
             self.mask = np.zeros(self.ticX[:,0].shape, dtype=bool)
             self.selector = RectangleSelector(self.ax, self.rect_highlight, useblit=True, props = dict(facecolor='cyan', alpha=0.2))
+
         self.canvas.draw()
+
+    def initT0(self):
+        self.t0Scroll.setMinimum(int(min(self.ticX[:,0])))
+        self.t0Scroll.setMaximum(int(max(self.ticX[:,0])))
+        self.t0Scroll.valueChanged.connect(self.t0ScrollValueChanged)
+        self.t0Scroll.setValue(int(min(self.ticX[:, 0])))
+        self.prevLine = self.ax.axvline(x = self.t0Scroll.value(), color = 'green', label = 'axvline - full height')
+        self.canvas.draw()
+
+        # def manualChecked(self):
+    #     self.hidePickingButtons()
+    #     self.acceptT0Button.setHidden(False)
+        # self.t0Scroll.setMinimum(int(min(self.ticX[:,0])))
+        # self.t0Scroll.setMaximum(int(max(self.ticX[:,0])))
+        # self.t0Scroll.valueChanged.connect(self.t0ScrollValueChanged)
+        # self.t0Scroll.setValue(int(min(self.ticX[:,0])))
+        # self.prevLine = self.ax.axvline(x = self.t0Scroll.value(), color = 'green', label = 'axvline - full height')
+        # self.canvas.draw()
+        # self.t0Scroll.setHidden(False)
+        # self.selectT0Label.setHidden(False)
 
     def deselectLast(self):
         global selectedPoints
@@ -291,9 +259,6 @@ class TICEditorGUI(QMainWindow):
                         break
             self.ticX = np.delete(self.ticX, selectedPoints, axis=0)
             self.ticY = np.delete(self.ticY, selectedPoints)
-            # for i in range(len(selectedPoints)):
-            #     ticX = np.delete(ticX,selectedPoints[i]-i)
-            #     del ticY[selectedPoints[i]-1]
             self.fig.clear()
             self.graph(self.ticX,self.ticY)
             ticX = self.ticX
@@ -311,8 +276,6 @@ class TICEditorGUI(QMainWindow):
             j = 0
             i = 0
             max = self.ticX.shape[0] + len(removedPointsX[-1])
-            # removed_points = [(removedPointsX[-1][i], removedPointsY[-1][i]) for i in range(len(removedPointsX[-1]))]
-            # removed_points.sort()
             while i < self.ticX.shape[0]-1:
                 if self.ticX[i][0] < removedPointsX[-1][j][0] and removedPointsX[-1][j][0] < self.ticX[i+1][0]:
                     self.ticX = np.insert(self.ticX, i+1, removedPointsX[-1][j], axis=0)
@@ -341,43 +304,6 @@ class TICEditorGUI(QMainWindow):
         self.removePointsLabel.setText(_translate("TIC Editor", "Select Points to Remove from TIC:"))
         self.selectT0Label.setText(_translate("TIC Editor", "Select Time to start Analysis"))
 
-    def acceptTIC(self):
-        normalizer = np.max(self.ticY) # np.max(self.OGdata) is roughly 251
-        # global normalizer
-        # normalizer = np.max(self.ticY)
-        print("normalizer:", normalizer)
-        self.ticY = self.ticY/normalizer;
-
-        # Bunch of checks
-        if np.isnan(np.sum(self.ticY)):
-            print('STOPPED:NaNs in the VOI')
-            return;
-        if np.isinf(np.sum(self.ticY)):
-            print('STOPPED:InFs in the VOI')
-            return;
-
-        # Do the fitting
-        try:
-            params, popt, wholecurve = lf.data_fit([self.ticX[:,0] - min(self.ticX[:,0]), self.ticY], normalizer);
-            self.ax.plot(self.ticX[:,0], wholecurve)
-            self.canvas.draw()
-            # ax.plot(self.ticX[:,0], wholecurve)
-        except RuntimeError:
-            print('RunTimeError')
-            params = np.array([np.max(self.ticY)*normalizer, np.trapz(self.ticY*normalizer, x=self.ticX[:,0]), self.ticX[:,0][np.argmax(self.ticY),0], np.max(self.ticX[:,0])*2, 0]);
-        # actualNormalizer = (np.exp(np.max(self.OGData4dImg)/self.compressValue.value()))/self.voxelScale;
-        # params[0] *= actualNormalizer
-        # popt[0] *= actualNormalizer
-        # tmppv = 251*np.exp(normalizer)
-        tmppv = normalizer
-        print("AUC:",popt[0])
-        print("PV:",params[0])
-        print("TP:",params[2])
-        print("MTT:",params[3])
-        print("TMPPV:", tmppv)
-        print("Final PV:", params[0]*tmppv)
-        print("Final AUC:", popt[0]*tmppv)
-
 
 
 if __name__ == "__main__":
@@ -400,4 +326,5 @@ if __name__ == "__main__":
     ui = TICEditorGUI()
     ui.show()
     ui.graph(test_ticX, test_ticY)
+    ui.initT0()
     sys.exit(app.exec_())
