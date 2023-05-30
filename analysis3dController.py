@@ -1244,7 +1244,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         if self.slicesChanger.value() >= len(self.sliceArray):
             self.slicesChanger.setValue(len(self.sliceArray)-1)
             self.sliceValueChanged()
-        self.slicesChanger.setMaximum(len(self.sliceArray-1))
+        self.slicesChanger.setMaximum(len(self.sliceArray)-1)
 
         if system == 'Windows':
             ax.set_xlabel("Time (s)", fontsize=8, labelpad=0.5)
