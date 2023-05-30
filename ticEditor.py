@@ -55,6 +55,7 @@ class TICEditorGUI(QMainWindow):
         self.chooseMethodLabel.setFrameShape(QFrame.NoFrame)
         self.chooseMethodLabel.setAlignment(Qt.AlignCenter)
         self.chooseMethodLabel.setText("Select t0 selection Method")
+        self.chooseMethodLabel.setHidden(True)
         self.frame = QFrame(self)
         self.frame.setGeometry(QRect(50, 90, 1111, 551))
         self.frame.setFrameShape(QFrame.StyledPanel)
@@ -112,6 +113,8 @@ class TICEditorGUI(QMainWindow):
         self.deselect.clicked.connect(self.deselectLast)
         self.remove.clicked.connect(self.removeSelectedPoints)
         self.restore.clicked.connect(self.restoreLastPoints)
+
+        self.t0Scroll.setValue(0)
 
         self.retranslateUi(self)
         QMetaObject.connectSlotsByName(self)

@@ -1241,12 +1241,9 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         ax.plot(self.ticEditor.ticX[:,0], self.ticEditor.ticY)
 
         self.sliceArray = self.ticEditor.ticX[:,1]
-
-        # This feature is nice to have, but takes too long on large datasets
-        # new_4dData = np.zeros((self.x+1, self.y+1, self.z+1, numUsedSlices))
-        # for i in range(numUsedSlices):
-        #     new_4dData[:,:,:,i] = self.data4dImg[:,:,:,self.usedSlices[i]]
-        # self.data4dImg = new_4dData
+        if self.slicesChanger.value() >= len(self.sliceArray):
+            self.slicesChanger.setValue(len(self.sliceArray)-1)
+            self.sliceValueChanged()
         self.slicesChanger.setMaximum(len(self.sliceArray-1))
 
         if system == 'Windows':
@@ -1291,15 +1288,17 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         self.ticPeLabel.setHidden(False)
         self.ticTpLabel.setHidden(False)
         self.ticMttLabel.setHidden(False)
+        self.ticTmppvLabel.setHidden(False)
         self.ticAucVal.setHidden(False)
         self.ticPeVal.setHidden(False)
         self.ticTpVal.setHidden(False)
         self.ticMttVal.setHidden(False)
+        self.ticTmppvVal.setHidden(False)
         self.ticAucVal.setText(str(int(popt[0]*1000)/1000))
         self.ticPeVal.setText(str(int(params[0]*1000)/1000))
         self.ticTpVal.setText(str(int(params[2]*100)/100))
         self.ticMttVal.setText(str(int(params[3]*100)/100))
-        print("TMPPV:", tmppv)
+        self.ticTmppvVal.setText(str(int(tmppv*100)/100))
         self.aucParamapButton.setCheckable(True)
         self.peParamapButton.setCheckable(True)
         self.tpParamapButton.setCheckable(True)

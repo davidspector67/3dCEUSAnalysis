@@ -36,6 +36,7 @@ class Contrast3dAnalysisGUI(QMainWindow):
         self.feedbackText.resize(161,47)
         self.feedbackText.setText("Input NIFTI file on left side, input folders on right side to generate NIFTI")
         self.feedbackText.setAlignment(Qt.AlignCenter)
+
         if system == 'Windows':
             font = QFont()
             font.setPointSize(6)
@@ -119,46 +120,55 @@ class Contrast3dAnalysisGUI(QMainWindow):
         self.curAlpha.setDisabled(True)
 
         self.ticVarLabel = QLabel(self)
-        self.ticVarLabel.setGeometry(QRect(0, 185, 221, 20))
+        self.ticVarLabel.setGeometry(QRect(0, 180, 221, 20))
         self.ticVarLabel.setText("TIC Variables:")
         self.ticVarLabel.setAlignment(Qt.AlignCenter)
         self.ticVarLabel.setHidden(True)
 
         self.ticAucLabel = QLabel(self)
-        self.ticAucLabel.setGeometry(QRect(40, 210, 161, 16))
+        self.ticAucLabel.setGeometry(QRect(40, 200, 161, 16))
         self.ticAucLabel.setText("AUC:")
         self.ticAucLabel.setHidden(True)
 
         self.ticAucVal = QLabel(self)
-        self.ticAucVal.setGeometry(QRect(140, 210, 100, 16))
+        self.ticAucVal.setGeometry(QRect(140, 200, 100, 16))
         self.ticAucVal.setHidden(True)
 
         self.ticPeLabel = QLabel(self)
-        self.ticPeLabel.setGeometry(QRect(40, 230, 161, 16))
-        self.ticPeLabel.setText("PE:")
+        self.ticPeLabel.setGeometry(QRect(40, 220, 161, 16))
+        self.ticPeLabel.setText("PV:")
         self.ticPeLabel.setHidden(True)
 
         self.ticPeVal = QLabel(self)
-        self.ticPeVal.setGeometry(QRect(140, 230, 100, 16))
+        self.ticPeVal.setGeometry(QRect(140, 220, 100, 16))
         self.ticPeVal.setHidden(True)
 
         self.ticMttLabel = QLabel(self)
-        self.ticMttLabel.setGeometry(QRect(40, 250, 161, 16))
+        self.ticMttLabel.setGeometry(QRect(40, 240, 161, 16))
         self.ticMttLabel.setText("MTT:")
         self.ticMttLabel.setHidden(True)
 
         self.ticMttVal = QLabel(self)
-        self.ticMttVal.setGeometry(QRect(140, 250, 100, 16))
+        self.ticMttVal.setGeometry(QRect(140, 240, 100, 16))
         self.ticMttVal.setHidden(True)
 
         self.ticTpLabel = QLabel(self)
-        self.ticTpLabel.setGeometry(QRect(40, 270, 161, 16))
+        self.ticTpLabel.setGeometry(QRect(40, 260, 161, 16))
         self.ticTpLabel.setText("TP:")
         self.ticTpLabel.setHidden(True)
 
         self.ticTpVal = QLabel(self)
-        self.ticTpVal.setGeometry(QRect(140, 270, 100, 16))
+        self.ticTpVal.setGeometry(QRect(140, 260, 100, 16))
         self.ticTpVal.setHidden(True)
+
+        self.ticTmppvLabel = QLabel(self)
+        self.ticTmppvLabel.setGeometry(QRect(40, 280, 161, 23))
+        self.ticTmppvLabel.setText("TMPPV :")
+        self.ticTmppvLabel.setHidden(True)
+
+        self.ticTmppvVal = QLabel(self)
+        self.ticTmppvVal.setGeometry(QRect(143, 280, 100, 16))
+        self.ticTmppvVal.setHidden(True)
 
         self.compressLabel = QLabel(self)
         self.compressLabel.setGeometry(QRect(490, 598, 150, 15))
@@ -245,7 +255,7 @@ class Contrast3dAnalysisGUI(QMainWindow):
         self.openIMGButton.setObjectName("openIMGButton")
 
         self.instrFunctLabel = QLabel(self)
-        self.instrFunctLabel.setGeometry(QRect(20, 300, 331, 16))
+        self.instrFunctLabel.setGeometry(QRect(20, 310, 331, 16))
         self.instrFunctLabel.setTextInteractionFlags(Qt.NoTextInteraction)
         self.instrFunctLabel.setObjectName("instrFunctLabel")
 
@@ -301,7 +311,7 @@ class Contrast3dAnalysisGUI(QMainWindow):
         self.corPlane.setObjectName("corPlane")
 
         self.line1 = QFrame(self)
-        self.line1.setGeometry(QRect(0, 280, 461, 21))
+        self.line1.setGeometry(QRect(0, 290, 461, 21))
         self.line1.setFrameShape(QFrame.HLine)
         self.line1.setFrameShadow(QFrame.Sunken)
         self.line1.setObjectName("line1")
@@ -383,7 +393,7 @@ class Contrast3dAnalysisGUI(QMainWindow):
         self.niftiDestinationLabel.setText("Destination for coverted nifti:")
 
         self.line = QFrame(self)
-        self.line.setGeometry(QRect(210, 0, 31, 291))
+        self.line.setGeometry(QRect(210, 0, 31, 301))
         self.line.setFrameShape(QFrame.VLine)
         self.line.setFrameShadow(QFrame.Sunken)
         self.line.setObjectName("line")
@@ -439,6 +449,7 @@ class Contrast3dAnalysisGUI(QMainWindow):
         self.feedbackLabel = QLabel(self)
         self.feedbackLabel.setGeometry(QRect(10, 190, 161, 16))
         self.feedbackLabel.setObjectName("feedbackLabel")
+
         self.line_2 = QFrame(self)
         self.line_2.setGeometry(QRect(0, 170, 221, 16))
         self.line_2.setFrameShape(QFrame.HLine)
