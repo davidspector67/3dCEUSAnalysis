@@ -1,4 +1,5 @@
 import sys
+import PyQt5
 from PyQt5.QtWidgets import QApplication
 from analysis3dController import Contrast3dAnalysisController
 

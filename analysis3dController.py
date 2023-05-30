@@ -5,7 +5,6 @@ import lognormalFunctions as lf
 from itertools import chain
 import platform
 from ticEditor import TICEditorGUI
-import matlab.engine
 import scipy.interpolate as interpolate
 from PyQt5.QtCore import Qt, QLine
 from PyQt5.QtGui import QPixmap, QImage, QPainter, QBitmap, QColor
@@ -25,7 +24,6 @@ import shutil
 # the risk of user-end failures
 
 system = platform.system()
-eng = matlab.engine.start_matlab()
 
 class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
     def __init__(self):

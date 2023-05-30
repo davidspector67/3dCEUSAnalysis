@@ -2,28 +2,16 @@ from __future__ import print_function
 import os, glob
 import numpy as np
 from numpy.lib.stride_tricks import as_strided as ast
-import scipy as sp 
 import scipy.misc
-from scipy import stats
 from scipy.optimize import curve_fit
-import scipy.ndimage as nd
-from math import exp, floor, ceil
-from time import ctime, sleep
+from math import exp
 from datetime import datetime
 import xml.etree.ElementTree as ET
 from sklearn.metrics import mean_squared_error
-import skimage.transform
 from skimage.morphology import opening, disk,closing,ball,erosion, dilation
 from skimage.filters import gaussian, threshold_otsu, sobel, rank
-from skimage.measure import label, regionprops
 from sklearn.metrics import mean_squared_error
 import nibabel as nib
-from joblib import Parallel, delayed
-import tempfile
-import shutil
-import nibabel as nib
-import stat
-import cv2
 
 def paramap(img, xmask, ymask, zmask, res, time, tf, compressfactor, windSize_x, windSize_y, windSize_z):
     print('*************************** Starting Parameteric Map *****************************')
