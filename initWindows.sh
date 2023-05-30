@@ -1,4 +1,4 @@
 pip install virtualenv
 virtualenv venv
-".\venv\List\activate.bat"
+.\venv\Scripts\activate.bat
 pip install -r ".\pyPackages.txt"
