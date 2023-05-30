@@ -46,7 +46,10 @@ chmod +x run.sh
 ```shell
 git clone https://github.com/davidspector67/3dCEUSAnalysis.git
 cd 3dCEUSAnalysis
-.\initWindows.sh
+pip install virtualenv
+virtualenv venv
+.\venv\Scripts\activate.bat
+pip install -r .\pyPackages.txt
 ```
 
 ## Running
