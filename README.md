@@ -31,11 +31,37 @@ Finally, using this lognormal curve fitting, the program computes the normalized
 
 ## Building
 
+### Mac/Linux
+
 ```shell
-make clean && make 
+git clone https://github.com/davidspector67/3dCEUSAnalysis.git
+cd 3dCEUSAnalysis
+chmod +x init.sh
+chmod +x run.sh
+./init.sh
+```
+
+### Windows
+
+```shell
+git clone https://github.com/davidspector67/3dCEUSAnalysis.git
+cd 3dCEUSAnalysis
+.\initWindows.sh
 ```
 
 ## Running
+
+### Mac/Linux
+
+```shell
+./run.sh
+```
+
+### Windows
+
+```shell
+.\run.sh
+```
 
 ```shell
 ./hash-table-tester -t [NUM_CORES] -s [NUM_ENTRIES]
