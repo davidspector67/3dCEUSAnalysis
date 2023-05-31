@@ -1202,8 +1202,6 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
                 mask[point] = 1
             from scipy.ndimage import binary_fill_holes
             for i in range(mask.shape[2]):
-                figure = plt.figure()
-                ax = figure.add_subplot()
                 border = np.where(mask[:,:,i] == 1)
                 if (not len(border[0])) or (max(border[0]) == min(border[0])) or (max(border[1]) == min(border[1])):
                     continue
@@ -1220,9 +1218,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
                 mask[:,:,i] = np.zeros((mask.shape[0], mask.shape[1]))
                 for j in range(len(splineX)):
                     mask[int(splineX[j]), int(splineY[j]), i] = 1
-                ax.imshow(mask[:,:,i])
                 filledMask = binary_fill_holes(mask[:,:,i])
-                ax.imshow(filledMask)
                 maskPoints = np.array(np.where(filledMask == True))
                 for j in range(len(maskPoints[0])):
                     self.maskCoverImg[maskPoints[0][j], maskPoints[1][j], i] = [0,0,255,int(self.curAlpha.value())]
@@ -1277,7 +1273,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
             ax.plot(self.ticEditor.ticX[:,0], wholecurve)
         except RuntimeError:
             print('RunTimeError')
-            params = np.array([np.max(self.ticEditor.ticY)*tmppv, np.trapz(self.ticEditor.ticY*tmppv, x=self.ticEditor.ticX[:,0]), self.ticEditor.ticX[:,0], [np.argmax(self.ticEditor.ticY),0], np.max(self.ticEditor.ticX[:,0])*2, 0]);
+            params = np.array([np.max(self.ticEditor.ticY)*tmppv, np.trapz(self.ticEditor.ticY*tmppv, x=self.ticEditor.ticX[:,0]), self.ticEditor.ticX[-1,0], np.argmax(self.ticEditor.ticY), np.max(self.ticEditor.ticX[:,0])*2, 0]);
         self.ticComputed = True
         self.fig.subplots_adjust(left=0.1, right=0.97, top=0.85, bottom=0.25)
         self.canvas.draw()
@@ -1294,7 +1290,7 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         self.ticTpVal.setHidden(False)
         self.ticMttVal.setHidden(False)
         self.ticTmppvVal.setHidden(False)
-        self.ticAucVal.setText(str(int(popt[0]*1000)/1000))
+        self.ticAucVal.setText(str(int(params[1]*1000)/1000))
         self.ticPeVal.setText(str(int(params[0]*1000)/1000))
         self.ticTpVal.setText(str(int(params[2]*100)/100))
         self.ticMttVal.setText(str(int(params[3]*100)/100))
@@ -1348,6 +1344,10 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
             times = [i*self.header[4] for i in range(1, self.OGData4dImg.shape[3]+1)]
             self.voxelScale = self.header[1]*self.header[2]*self.header[3] # mm^3
             self.voxelScale /= len(self.pointsPlotted)
+            print("self.header[0]:", self.header[0])
+            print("self.header[1]:", self.header[1])
+            print("self.header[2]:", self.header[2])
+            print("voxelscale", self.voxelScale)
             simplifiedMask = self.maskCoverImg[:,:,:,2]
             TIC = ut.generate_TIC(self.OGData4dImg, simplifiedMask, times, self.compressValue.value(),  self.voxelScale)
 
