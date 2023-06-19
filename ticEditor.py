@@ -100,11 +100,13 @@ class TICEditorGUI(QMainWindow):
         self.acceptT0Button.setText("Accept Start Time")
         self.acceptT0Button.setFocusPolicy(Qt.NoFocus)
         self.acceptT0Button.clicked.connect(self.acceptT0)
+        self.acceptT0Button.setHidden(True)
 
-        self.t0Scroll = QSlider(self)
-        self.t0Scroll.setGeometry(QRect(400, 660, 200, 50))
-        self.t0Scroll.setOrientation(Qt.Horizontal)
-        self.t0Scroll.setObjectName("t0scroll")
+        self.selectT0Button = QPushButton(self)
+        self.selectT0Button.setGeometry(QRect(480, 660, 250, 50))
+        self.selectT0Button.setFont(font)
+        self.selectT0Button.setText("Select T0")
+        self.selectT0Button.setFocusPolicy(Qt.NoFocus)
 
         self.t0index = -1
         self.frontPointsX = []
@@ -113,8 +115,7 @@ class TICEditorGUI(QMainWindow):
         self.deselect.clicked.connect(self.deselectLast)
         self.remove.clicked.connect(self.removeSelectedPoints)
         self.restore.clicked.connect(self.restoreLastPoints)
-
-        self.t0Scroll.setValue(0)
+        self.selectT0Button.clicked.connect(self.initT0)
 
         self.retranslateUi(self)
         QMetaObject.connectSlotsByName(self)
@@ -207,6 +208,14 @@ class TICEditorGUI(QMainWindow):
         self.canvas.draw()
 
     def initT0(self):
+        self.acceptT0Button.setHidden(False)
+        self.selectT0Button.setHidden(True)
+
+        self.t0Scroll = QSlider(self)
+        self.t0Scroll.setGeometry(QRect(400, 660, 200, 50))
+        self.t0Scroll.setOrientation(Qt.Horizontal)
+        self.t0Scroll.setHidden(False)
+
         self.t0Scroll.setMinimum(int(min(self.ticX[:,0])))
         self.t0Scroll.setMaximum(int(max(self.ticX[:,0])))
         self.t0Scroll.valueChanged.connect(self.t0ScrollValueChanged)
@@ -317,5 +326,4 @@ if __name__ == "__main__":
     ui = TICEditorGUI()
     ui.show()
     ui.graph(test_ticX, test_ticY)
-    ui.initT0()
     sys.exit(app.exec_())

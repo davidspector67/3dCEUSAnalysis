@@ -1365,9 +1365,8 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
             self.ticX = np.array([[TIC[i,0],i] for i in range(len(TIC[:,0]))])
             self.ticY = TIC[:,1]
             self.ticEditor.graph(self.ticX, self.ticY)
-            self.ticEditor.initT0()
-            self.ticEditor.t0Scroll.setValue(int(min(self.ticEditor.ticX[:, 0])))
-            self.ticEditor.t0ScrollValueChanged()
+            # self.ticEditor.t0Scroll.setValue(int(min(self.ticEditor.ticX[:, 0])))
+            # self.ticEditor.t0ScrollValueChanged()
 
     def showAuc(self):
         if self.aucParamapButton.isChecked():
