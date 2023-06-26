@@ -108,10 +108,6 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
     # displays all the initial 2D slices for axial, sag and coronal planes
     # sets the max of scroll bars and gets dimensions of each slice
     def openInitialImageSlices(self):
-        if os.path.exists("niftiROIs"):
-            shutil.rmtree("niftiROIs") #will also remove all the drawings made
-        os.mkdir("niftiROIs") #for drawings
-
         self.feedbackText.setText("Use 'Draw ROI' to start drawing ROIs to construct a VOI")
         
         self.nibImg = nib.load(self.inputTextPath, mmap=False)
