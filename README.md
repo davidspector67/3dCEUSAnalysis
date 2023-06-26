@@ -89,7 +89,7 @@ deactivate
 
 ```shell
 call \venv\scripts\activate.bat
-python main.py
+python -m PyInstaller --windowed main.py
 deactivate
 
 ```
