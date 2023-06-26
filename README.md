@@ -36,9 +36,11 @@ Finally, using this lognormal curve fitting, the program computes the normalized
 ```shell
 git clone https://github.com/davidspector67/3dCEUSAnalysis.git
 cd 3dCEUSAnalysis
-chmod +x init.sh
-chmod +x run.sh
-./init.sh
+pip install virtualenv
+python -m venv venv
+source venv/bin/activate
+pip install -r pyPackages.txt
+deactivate
 ```
 
 ### Windows
@@ -46,7 +48,11 @@ chmod +x run.sh
 ```shell
 git clone https://github.com/davidspector67/3dCEUSAnalysis.git
 cd 3dCEUSAnalysis
-pip install -r .\pyPackages.txt
+pip install virtualenv
+python -m venv venv
+call \venv\scripts\activate.bat
+pip install -r pyPackages.txt
+deactivate
 ```
 
 ## Running
@@ -54,11 +60,36 @@ pip install -r .\pyPackages.txt
 ### Mac/Linux
 
 ```shell
-./run.sh
+call venv\scripts\activate.bat
+python main.py
+deactivate
 ```
 
 ### Windows
 
 ```shell
+source venv/bin/activate
 python main.py
+deactivate
+```
+
+## Create an executable (Optional)
+
+After building the application, you can create a fully packaged application in this repository's directory using:
+
+### Mac/Linux
+
+```shell
+source venv/bin/activate
+python -m PyInstaller --windowed main.py
+deactivate
+```
+
+### Windows
+
+```shell
+call \venv\scripts\activate.bat
+python main.py
+deactivate
+
 ```
