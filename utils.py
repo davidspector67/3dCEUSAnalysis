@@ -100,8 +100,9 @@ def generate_TIC(window, mask, times, compression, voxelscale):
     TICtime=times;TIC=[]; 
     bool_mask = np.array(mask, dtype=bool)
     for t in range(0,window.shape[3]):
-        tmpwin = window[:,:,:,t];       
-        TIC.append(np.around(np.exp(tmpwin[bool_mask]/compression).mean()/voxelscale, decimals=1));
+        tmpwin = window[:,:,:,t];      
+        TIC.append(np.exp(tmpwin[bool_mask]/compression).mean()*voxelscale);
+        # TIC.append(np.around((tmpwin[bool_mask]/compression).mean()*voxelscale, decimals=1)); 
     TICz = np.array([TICtime,TIC]).astype('float64'); TICz = TICz.transpose();
     TICz[:,1]=TICz[:,1]-np.mean(TICz[0:2,1]);#Substract noise in TIC before contrast.
     if TICz[np.nan_to_num(TICz)<0].any():#make the smallest number in the TIC 0.
@@ -163,7 +164,10 @@ def read_xmlraw_image_func(filename):
           geometry = root[i].find('Geometry')
           if not geometry:
               continue
-          layer = geometry.find('Layer')
+          layer = geometry.find('Layers')
+          if not layer:
+              continue
+          layer = layer.find('Layer')
           if not layer:
               continue
           regionLocationMaxz1 = layer.find('RegionLocationMaxz1')
@@ -179,7 +183,8 @@ def read_xmlraw_image_func(filename):
           if physicalDeltaZ:
               voxelZ = float(physicalDeltaZ.text)
           try:
-              voxel=[voxelX*10, voxelY*10, voxelZ*10] # cm to mm
+              voxel=[float(physicalDeltaX.text)*10, float(physicalDeltaY.text)*10, float(physicalDeltaZ.text)*10] # cm to mm
+              P=int(regionLocationMaxz1.text)+1
           except:
               continue
           
@@ -230,6 +235,8 @@ def read3D(data, newres, cut):#=[[-1,-1,5,5],[-1,-1,25,5],[-1,-1,5,5]]):
     imi_mid, res, timelast, shapes, dateStr = read_xmlraw_image_func(xmlnamedir[np.uint16(len(xmlnamedir)/2)]); 
     imi10, res, timelast, shapes, dateStr = read_xmlraw_image_func(xmlnamedir[10]); 
     imi_mid, res, timelast, shapes, dateStr = read_xmlraw_image_func(xmlnamedir[1]);
+
+    finalRes = res
     
     finalImi = []
     prevX = -1
@@ -309,7 +316,7 @@ def read3D(data, newres, cut):#=[[-1,-1,5,5],[-1,-1,25,5],[-1,-1,5,5]]):
     imarray = np.array(imarray)
     imarray1[0,:,0,:,:,:] = np.asarray(imarray)
 
-    return imarray1, res, time;
+    return imarray1, finalRes, time;
 
 def xml2nifti(folderPath, fileDestination):
     print('Started xml2nii:')

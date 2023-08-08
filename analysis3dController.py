@@ -16,6 +16,9 @@ import pyvista as pv
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QFileDialog
 import shutil
+# from scipy.io import loadmat
+from scipy.signal import hilbert
+from mat73 import loadmat
 
 
 # When running for testing, use the below code to silence invalid value in log warning.
@@ -49,7 +52,8 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
     # if file path is entered, check that it exists and get it, otherwise, let user
     # browse themselves for a valid nifti file; also makes directories to store drawings and masks made
     def getTextInput(self) :
-        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.nii *.nii.gz')
+        fileName, _ = QFileDialog.getOpenFileName(None, 'Open File', filter = '*.nii *.nii.gz *.mat')
+        # fileName = QFileDialog.getExistingDirectory(None, 'Select Directory')
         if fileName != '':
             self.niftiLineEdit.setText(fileName)
             self.inputTextPath = self.niftiLineEdit.text()
@@ -108,14 +112,61 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
     # displays all the initial 2D slices for axial, sag and coronal planes
     # sets the max of scroll bars and gets dimensions of each slice
     def openInitialImageSlices(self):
-        self.feedbackText.setText("Use 'Draw ROI' to start drawing ROIs to construct a VOI")
+        # self.feedbackText.setText("Use 'Draw ROI' to start drawing ROIs to construct a VOI")
+
+        # self.nibImg = []
+        # for plane in os.listdir(self.inputTextPath):
+        #     if os.path.isdir(os.path.join(self.inputTextPath, plane)):
+        #         j = 0
+        #         for file in os.listdir(str(self.inputTextPath + '/' + plane)):
+        #             if j == 1:
+        #                 break
+        #             if file.endswith(".mat"):
+        #                 input = loadmat(str(self.inputTextPath + '/' + plane + '/' + file))
+        #                 iqData = input["IQData"]
+        #                 bmode = iqData
+        #                 for i in range(iqData.shape[1]):
+        #                     bmode[:,i] = np.log10(abs(iqData[:,i]))
+        #                 self.nibImg.append(bmode)
+        #                 j = 1
         
-        self.nibImg = nib.load(self.inputTextPath, mmap=False)
-        self.dataNibImg = self.nibImg.get_fdata()
-        self.dataNibImg = self.dataNibImg.astype(np.uint8)
-        self.windowsComputed = False
+        # self.dataNibImg = np.array(self.nibImg)
+        # self.dataNibImg = np.clip(self.dataNibImg, (0.95*np.amax(self.dataNibImg)-3), 0.95*np.amax(self.dataNibImg)).astype(np.float)
+        # self.dataNibImg -= np.amin(self.dataNibImg)
+        # self.dataNibImg *= (255/np.amax(self.dataNibImg))
+        # # self.dataNibImg = self.dataNibImg.astype(np.int32)
+        # self.dataNibImg = np.reshape(self.dataNibImg, (self.dataNibImg.shape[0], self.dataNibImg.shape[1], self.dataNibImg.shape[2], 1))
+
+
+
+        if self.inputTextPath.endswith(".mat"):
+            input = loadmat(self.inputTextPath)
+            self.dataNibImg = []
+            rf_data_all_fund = input["rf_data_all_fund"]
+            for i in range(2):
+                for j in range(5):
+                    temp = rf_data_all_fund[i][j]
+                    other_temp = temp
+                    for k in range(temp.shape[1]):
+                        other_temp[:,k] = 20*np.log10(abs(hilbert(temp[:,k])))
+                    self.dataNibImg.append(other_temp)
+            # self.dataNibImg = 20*np.log10(abs(hilbert(input["rf_data_all_fund"])))
+
+            self.dataNibImg = np.array(self.dataNibImg)
+            self.dataNibImg = np.reshape(self.dataNibImg, (self.dataNibImg.shape[0], self.dataNibImg.shape[1], self.dataNibImg.shape[2], 1))
+
+
+        else:
+            self.nibImg = nib.load(self.inputTextPath, mmap=False)
+            self.dataNibImg = self.nibImg.get_fdata()
+            self.dataNibImg = self.dataNibImg.astype(np.uint8)
+            self.windowsComputed = False
+
 
         self.OGData4dImg = self.dataNibImg.copy()
+
+        # self.header = self.nibImg.header['pixdim']
+        # print(self.header)
 
         self.data4dImg = self.dataNibImg
         self.x, self.y, self.z, self.numSlices = self.data4dImg.shape
@@ -168,24 +219,27 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         self.curMaskSagIm = QImage(tempSag, self.maskSagW, self.maskSagH, self.maskBytesLineSag, QImage.Format_ARGB32)
         self.curMaskCorIm = QImage(tempCor, self.maskCorW, self.maskCorH, self.maskBytesLineCor, QImage.Format_ARGB32)
 
-        self.maskLayerAx.setPixmap(QPixmap.fromImage(self.curMaskAxIm).scaled(331,311)) #displaying QPixmap in the QLabels
-        self.maskLayerSag.setPixmap(QPixmap.fromImage(self.curMaskSagIm).scaled(331,311))
-        self.maskLayerCor.setPixmap(QPixmap.fromImage(self.curMaskCorIm).scaled(331,311))
+        # self.maskLayerAx.setPixmap(QPixmap.fromImage(self.curMaskAxIm).scaled(331,311)) #displaying QPixmap in the QLabels
+        # self.maskLayerSag.setPixmap(QPixmap.fromImage(self.curMaskSagIm).scaled(331,311))
+        # self.maskLayerCor.setPixmap(QPixmap.fromImage(self.curMaskCorIm).scaled(331,311))
+        self.maskLayerAx.setPixmap(QPixmap.fromImage(self.curMaskAxIm)) #displaying QPixmap in the QLabels
+        self.maskLayerSag.setPixmap(QPixmap.fromImage(self.curMaskSagIm))
+        self.maskLayerCor.setPixmap(QPixmap.fromImage(self.curMaskCorIm))
         self.maskLayerAx.setMouseTracking(True)
         self.maskLayerSag.setMouseTracking(True)
         self.maskLayerCor.setMouseTracking(True)
 
 
-        #create a list for frames in combobox for easy navigation
-        self.listAxial = []
-        for n in range(self.z):
-            self.listAxial.append("Slice " + str(n+1))
-        self.listSag = []
-        for m in range(self.x):
-            self.listSag.append("Slice " + str(m+1))
-        self.listCor = []
-        for l in range(self.y):
-            self.listCor.append("Slice " + str(l+1))
+        # #create a list for frames in combobox for easy navigation
+        # self.listAxial = []
+        # for n in range(self.z):
+        #     self.listAxial.append("Slice " + str(n+1))
+        # self.listSag = []
+        # for m in range(self.x):
+        #     self.listSag.append("Slice " + str(m+1))
+        # self.listCor = []
+        # for l in range(self.y):
+        #     self.listCor.append("Slice " + str(l+1))
 
         self.drawPolygonButton.setCheckable(True)
 
@@ -218,9 +272,13 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         self.qImgSag = QImage(self.data2dSag, self.widthSag, self.heightSag, self.bytesLineSag, QImage.Format_Grayscale8)
         self.qImgCor = QImage(self.data2dCor, self.widthCor, self.heightCor, self.bytesLineCor, QImage.Format_Grayscale8)
 
-        self.pixmapAx = QPixmap.fromImage(self.qImgAx).scaled(331,311) #creating QPixmap from QImage
-        self.pixmapSag = QPixmap.fromImage(self.qImgSag).scaled(331,311)
-        self.pixmapCor = QPixmap.fromImage(self.qImgCor).scaled(331,311)
+
+        # self.pixmapAx = QPixmap.fromImage(self.qImgAx).scaled(331,311) #creating QPixmap from QImage
+        # self.pixmapSag = QPixmap.fromImage(self.qImgSag).scaled(331,311)
+        # self.pixmapCor = QPixmap.fromImage(self.qImgCor).scaled(331,311)
+        self.pixmapAx = QPixmap.fromImage(self.qImgAx)
+        self.pixmapSag = QPixmap.fromImage(self.qImgSag)
+        self.pixmapCor = QPixmap.fromImage(self.qImgCor)
 
         self.axialPlane.setPixmap(self.pixmapAx) #displaying QPixmap in the QLabels
         self.sagPlane.setPixmap(self.pixmapSag)
@@ -1229,7 +1287,8 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
 
     def acceptTIC(self):
         ax = self.fig.add_subplot(111)
-        self.ticEditor.ticY -= min(self.ticEditor.ticY)
+        # self.ticEditor.ticY -= min(self.ticEditor.ticY)
+        # self.ticEditor.ticY *= len(self.pointsPlotted)
         ax.plot(self.ticEditor.ticX[:,0], self.ticEditor.ticY)
 
         self.sliceArray = self.ticEditor.ticX[:,1]
@@ -1338,12 +1397,11 @@ class Contrast3dAnalysisController(Contrast3dAnalysisGUI):
         if not self.windowsComputed and self.voiComputed:
             self.header = self.nibImg.header['pixdim'] # [dims, voxel dims (3 vals), timeconst, 0, 0, 0]
             times = [i*self.header[4] for i in range(1, self.OGData4dImg.shape[3]+1)]
-            self.voxelScale = self.header[1]*self.header[2]*self.header[3] # mm^3
-            self.voxelScale /= len(self.pointsPlotted)
-            print("self.header[0]:", self.header[0])
-            print("self.header[1]:", self.header[1])
-            print("self.header[2]:", self.header[2])
-            print("voxelscale", self.voxelScale)
+            self.voxelScale = self.header[1]*self.header[2]*self.header[3] #/1000/1000/1000 # mm^3
+            self.pointsPlotted = [*set(self.pointsPlotted)]
+            print("Voxel volume:", self.voxelScale)
+            self.voxelScale *= len(self.pointsPlotted)
+            print("Num voxels:", len(self.pointsPlotted))
             simplifiedMask = self.maskCoverImg[:,:,:,2]
             TIC = ut.generate_TIC(self.OGData4dImg, simplifiedMask, times, self.compressValue.value(),  self.voxelScale)
 
