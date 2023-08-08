@@ -50,7 +50,7 @@ git clone https://github.com/davidspector67/3dCEUSAnalysis.git
 cd 3dCEUSAnalysis
 pip install virtualenv
 python -m venv venv
-call \venv\scripts\activate.bat
+call venv\scripts\activate.bat
 pip install -r pyPackages.txt
 deactivate
 ```
@@ -88,8 +88,8 @@ deactivate
 ### Windows
 
 ```shell
-call \venv\scripts\activate.bat
-python main.py
+call venv\scripts\activate.bat
+python -m PyInstaller --windowed main.py
 deactivate
 
 ```
